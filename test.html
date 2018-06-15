@@ -50,7 +50,7 @@
 			position: fixed;
 			z-index: 1000;
 			width: 400px;
-			height: 600px;
+			height: 500px;
 			left: 10px;
 			bottom: 10px;
 			padding-left: 15px;
@@ -81,7 +81,7 @@
 			text-decoration: none;
 			z-index: 1005;
 			top: 20px;
-			left: 5px;
+			right: 10px;
 		}
 
 		.btn:hover {
@@ -177,14 +177,7 @@
 
 	 $("#spinner").hide();
 
-
-
 	var map = L.map('map', {zoomControl: false, scrollWheelZoom: false}).setView([13.29119, -22.92940], 4);
-
-	// var map = L.map("map", {zoomControl: false, scrollWheelZoom: false}).fitBounds([
-	// 	[49.3, -138.5],
-	// 	[22.8, -67.4]
-	// ]);
 
 
 	var lcTile =L.tileLayer('assets/qtiles/MODIS_vis3/{z}/{x}/{y}.png', {
