@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Landcover by Basin Barcharts</title>
+	<title>Geovisual analytical toolkit for Google Earth Engine</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style>
@@ -21,7 +21,10 @@
 			width: 100%;
 			height: 100%;
 			background-color: #adb7fa;
+			font-family: Cairo, sans-serif;
 		}
+
+
 
 		#title {
 			/*position: fixed;*/
@@ -68,14 +71,14 @@
 			font-size: 12px;
 		}
 
-
 		.btn {
 			position: fixed;
 			cursor: pointer;
-			font-size: 18px;
+			font-size: 24px;
 			padding-bottom: 5px;
 			margin-bottom: 5px;
-			color: rgba(169, 169, 169, 0.8);
+			color: rgba(0, 0, 0, 0.8);
+			text-decoration: none;
 			z-index: 1005;
 			top: 20px;
 			left: 5px;
@@ -87,6 +90,34 @@
 		}
 
 
+		.loading {
+			pointer-events: none;
+			-webkit-filter:   blur(2px) grayscale(30%);
+			-moz-filter:   blur(2px) grayscale(30%);
+			filter:  blur(2px) grayscale(30%);
+		}
+
+		#spinner {
+			position: fixed;
+			top: 46%;
+			left: 46%;
+			width: 100px;
+			z-index: 2000;
+		}
+
+		#sat, #land, #light, #ndvi {
+			/*pointer-events: auto;*/
+			cursor: pointer;
+		}
+		#sat:hover, #land:hover, #light:hover, #ndvi:hover {
+			/*pointer-events: auto;*/
+			color: rgba(0, 117, 255, 0.6);
+		}
+		/*.geoviz {*/
+
+			/*!*-vendor-animation-duration: 10s !important;*!*/
+			/*-vendor-animation-iteration-count: 3 !important;*/
+		/*}*/
 	</style>
 
 	<!-- Stylesheet -->
@@ -94,8 +125,13 @@
 	<link rel="stylesheet" type="text/css" href="css/dc.css" />
 	<link href="https://fonts.googleapis.com/css?family=Cairo" rel="stylesheet">
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.12/css/all.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+	<link rel="shortcut icon" href="img/geoviz-logo.png">
+	<link rel="apple-touch-icon icon" sizes="192x192" href="img/geoviz-logo.png">
+
+
 	<script src="js/leaflet.js"></script>
-	<script src="js/leaflet.ajax.min.js"></script>
+	<!--<script src="js/leaflet.ajax.min.js"></script>-->
 	<script src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/d3.v5.min.js"></script>
 	<script type="text/javascript" src="js/crossfilter.min.js"></script>
@@ -106,13 +142,15 @@
 </head>
 
 <body>
+<img id="spinner" src="img/loading.gif" />
 <div id="map"></div>
 <div id="title" class="info-panel" >
-	<h4>Distribution of Landcover by Basin</h4>
+
+	<h4>Geovisual analytical toolkit for Google Earth Engine</h4>
 
 	<p><small>a brief tutorial on how to use this toolkit</small></p>
 
-	<p>Choose a base map:  <span>Satellite</span> | <span> Light Color </span> | <span> Land Use </span> | <span> NDVI </span></p>
+	<p>Choose a base map:  <span id="sat">Satellite</span> | <span id="light"> Light Color </span> | <span id="land"> Land Use </span> | <span id="ndvi"> NDVI </span></p>
 	<!--<p id="update"></p>-->
 	<div id="lc-chart"></div>
 	<p>Support by Google Cloud Platform <img src="img/gcp-logo.png" height="20px"> and Google Earth Engine  <img src="img/gee-logo.png" height="20px"></p>
@@ -126,55 +164,19 @@
 		   target="_blank"></a>
 	</dt>
 	<dt>
-		<!--facebook icon-->
-		<a class="fab fa-github btn" href="https://github.com/jakobzhao/storymap" style="top:40px"
+		<a class="fab fa-github btn" href="https://github.com/jakobzhao/storymap" style="top:48px"
 		   target="_blank"></a>
 	</dt>
 	<dt>
-		<!--info icon-->
-		<i class="fas fa-info-circle btn" style="top:60px" data-toggle="modal" data-target="#info-modal"></i>
+		<a class="btn animated swing" href="http://geoviz.ceoas.oregonstate.edu" style="top:76px"
+		   target="_blank" ><img src="img/geoviz-logo.png" width="22px"></a>
 	</dt>
 </dl>
 
 <script>
 
+	 $("#spinner").hide();
 
-	// Set style function that sets fill color property equal to cell tower density
-	function style(feature) {
-		return {
-			fillColor: '#008080',
-			fillOpacity: 0.7,
-			weight: 1,
-			opacity: 1,
-			color: '#ffffff',
-		};
-	}
-
-	// Interactive features
-	// Highlight a feature when the mouse hovers on it
-	function highlightFeature(e) {
-		// e indicates the current event
-		var layer = e.target; //the target capture the object which the event associates with
-		layer.setStyle({
-			weight: 5,
-			opacity: 0.6,
-			color: '#e1e0e3',
-			fillColor: '#9a7ee3',
-			fillOpacity: 0.5
-		});
-		// bring the layer to the front.
-		layer.bringToFront();
-	}
-
-	// Zoom to the highlighted feature when the mouse is clicking onto it.
-	function zoomToFeature(e) {
-		map.fitBounds(e.target.getBounds());
-	}
-
-	// Reset the hightlighted feature when the mouse is out of its region.
-	function resetHighlight(e) {
-		basins.resetStyle(e.target);
-	}
 
 
 	var map = L.map('map', {zoomControl: false, scrollWheelZoom: false}).setView([13.29119, -22.92940], 4);
@@ -191,27 +193,36 @@
 		useCache: false
 	}).addTo(map);
 
-	var basins = null;
 
-	// Add Neighborhood Polygons
-	basins = L.geoJson.ajax("assets/basins_simplified.geojson", {
-		//style: style
-		style: style,
-		onEachFeature: function (feature, label) {
-			label.on({
-				mouseover: highlightFeature,
-				click: zoomToFeature,
-				mouseout: resetHighlight
-			});d
-		}}).addTo(map);
+	 var sat =L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+
+	 var light = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/rastertiles/voyager/{z}/{x}/{y}{r}.png');
+
+	 $("#sat").on("click", function(){
+		 map.removeLayer(sat);
+		 map.removeLayer(light);
+		 map.addLayer(sat);
+	 });
+
+	 $("#light").on("click", function(){
+		 map.removeLayer(sat);
+		 map.removeLayer(light);
+		 map.addLayer(light);
+	 });
+
+	 $("#land").on("click", function(){
+		 map.removeLayer(sat);
+		 map.removeLayer(light);
+	 });
 
 
-	///////////////CHART CREATION//////////////////////////
+	 ///////////////CHART CREATION//////////////////////////
 	function updateMapFilter() {
-		$("#update").text("");
-		// map.flyTo(map.getCenter(),map.getZoom());
 
-		// $(lcTile._container.children[0]).find("img").length
+		$("#map").addClass("loading");
+		$("#spinner").show();
+
+		$("#update").text("");
 
 		var imgs = $(lcTile._container.children[0]).find("img");
 		var len = imgs.length;
@@ -245,9 +256,7 @@
 				console.log("mode:" + ss.mode(data).toString());
 				dataarray = Array.from(data);
 				return dataarray;
-
-				$("#update").text("reading tiles...");
-
+				// $("#update").text("reading tiles...");
 			})
 
 		);
@@ -352,9 +361,9 @@
 			var lcDimensionGroup = lcDimension.group();
 
 			lcChart
-				.height(400)
+				.height(300)
 				.width(400)
-				.margins({top: 0, right: 0, bottom: 50, left: 45})
+				.margins({top: 0, right: 0, bottom: 20, left: 35})
 				.dimension(lcDimension)
 				.group(lcDimensionGroup)
 				.elasticY(true)
@@ -406,6 +415,8 @@
 			}
 
 			$("#update").text("updated");
+			$("#map").removeClass("loading");
+			$("#spinner").hide();
 		});
 
 	}
@@ -414,9 +425,9 @@
 
 	$(".leaflet-control")
 		.empty()
-		.css("border-radius", "5px")
+		.css("border-radius", "2px")
 		.css("background-color", "rgba(255,255,255,0.7)")
-		.html("<p style='line-height:16px; height:32px!important; vertical-align: center; margin:0 0 0 0; padding: 0 0 0 0 '>Created by <a target='_blank' href='http://ceoas.oregonstate.edu/profile/friedrich/'>Hannah Friedrich</a> and <a target='_blank' href='http://ceoas.oregonstate.edu/profile/zhao/'>Bo Zhao</a> from <img src='img/geoviz-logo.png' width='20px'/> |  <a>GeoViz Lab at Oregon State University</p></a>");
+		.html("<p style='line-height:16px; height:18px!important; vertical-align: center; margin:0 0 0 0; padding: 0 0 0 0 '>Created by <a target='_blank' href='http://ceoas.oregonstate.edu/profile/friedrich/'>Hannah Friedrich</a> and <a target='_blank' href='http://ceoas.oregonstate.edu/profile/zhao/'>Bo Zhao</a> from <img src='img/geoviz-logo.png' width='12px'/> <a>GeoViz Lab at Oregon State University</p></a>");
 
 
 </script>
