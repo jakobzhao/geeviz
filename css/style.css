@@ -41,7 +41,7 @@ body {
 .info-panel {
 	position: fixed;
 	z-index: 1000;
-	width: 400px;
+	width: 500px;
 	height: 500px;
 	left: 10px;
 	bottom: 10px;
@@ -91,6 +91,7 @@ body {
 
 #spinner {
 	position: fixed;
+	display: none;
 	top: 46%;
 	left: 46%;
 	width: 100px;

@@ -15,12 +15,6 @@
 	<link rel="shortcut icon" href="img/geoviz-logo.png">
 	<link rel="apple-touch-icon icon" sizes="192x192" href="img/geoviz-logo.png">
 
-
-
-	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>-->
-	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.min.js"></script>-->
-	<!--<script src="js/globeminimap.js"></script>-->
-
 	<script src="js/leaflet.js"></script>
 	<!--<script src="js/leaflet.ajax.min.js"></script>-->
 	<script src="js/jquery.min.js"></script>
@@ -31,13 +25,12 @@
 	<script src="js/pako.min.js"></script>
 	<script src="js/UPNG.js"></script>
 
-
 </head>
 
 <body>
 <img id="spinner" src="img/loading.gif" />
 <div id="map"></div>
-<div id="title" class="info-panel" >
+<div class="info-panel" >
 
 	<h4>Geovisual analytical toolkit for Google Earth Engine</h4>
 
@@ -67,29 +60,27 @@
 </dl>
 
 <script>
+    let southWest = L.latLng(-85, -160);
+    let northEast = L.latLng(85, 180);
 
-	$("#spinner").hide();
 
-	let map = L.map('map', {zoomControl: true, scrollWheelZoom: false});
-	// let globe = new L.Control.GlobeMiniMap({
-	// 	marker: 'red',
-	// 	position: 'bottomright'
-	// });
-	// globe.addTo(map);
+    let map = L.map('map', {zoomControl: true, scrollWheelZoom: false, maxBounds: L.latLngBounds(southWest, northEast),});
+
 	map.setView([13.29119, -22.92940], 4);
+
+
 	// https://storage.googleapis.com/gee_exports/MODIS_vis3/7/87/45
 
-	let lcTile = L.tileLayer('https://storage.googleapis.com/gee_exports/MODIS_vis3/{z}/{x}/{y}', {
-		maxZoom: 6,
-		tms: false
-	}).addTo(map);
-
-	// let lcTile =L.tileLayer('assets/qtiles/MODIS_vis3/{z}/{x}/{y}.png', {
+	// let lcTile = L.tileLayer('https://storage.googleapis.com/gee_exports/MODIS_vis3/{z}/{x}/{y}', {
 	// 	maxZoom: 6,
-	// 	tms: false,
-	// 	noWrap: true,
-	// 	useCache: true
+	// 	tms: false
 	// }).addTo(map);
+
+	let lcTile =L.tileLayer('assets/qtiles/MODIS_vis3/{z}/{x}/{y}.png', {
+		maxZoom: 6,
+		tms: false,
+		useCache: true
+	}).addTo(map);
 
 
 	let sat =L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
@@ -119,8 +110,8 @@
 
 		$("#map").addClass("loading");
 		$("#spinner").show();
-
 		$("#update").text("");
+		$(".info-panel").hide();
 
 		let imgs = $(lcTile._container.children[0]).find("img");
 		let imgs2 = $(lcTile._container.children[1]).find("img");
@@ -129,7 +120,7 @@
 		}
 		let len = imgs.length;
 		let newarray = [];
-		let dataarray = [];
+		// let dataarray = [];
 		let urls = [];
 
 		for (let i = 0; i < len; i++) {
@@ -143,7 +134,7 @@
 
 		let requestOpt = {
 			method: 'GET',
-			mode: 'cors',
+			mode: 'no-cors',
 			header: header
 		};
 
@@ -152,137 +143,152 @@
 			.then(function(response){
 				return response.arrayBuffer()})
 			.then(function (buffer) {
-				let img = UPNG.decode(buffer);
-				let h = img.height;
-				let w = img.width;
-				let ctype = img.ctype;
-				let depth = img.depth;
-				//
-				console.log("depth:" + depth.toString());
-				console.log("ctype:" + ctype.toString());
-				console.log("mean:" + ss.mean(img.data).toString());
-				console.log("median:" + ss.median(img.data).toString());
-				console.log("max:" + ss.max(img.data).toString());
-				//
-				console.log(img.data);
-				console.log("mode:" + ss.mode(img.data).toString());
-				// dataarray = Array.from(data);
-				return Array.from(img.data);
-				// $("#update").text("reading tiles...");
+			    try {
+					let img = UPNG.decode(buffer);
+					let h = img.height;
+					let w = img.width;
+					let ctype = img.ctype;
+					let depth = img.depth;
+					//
+					console.log("depth:" + depth.toString());
+					console.log("ctype:" + ctype.toString());
+					console.log("mean:" + ss.mean(img.data).toString());
+					console.log("median:" + ss.median(img.data).toString());
+					console.log("max:" + ss.max(img.data).toString());
+					//
+					console.log(img.data);
+					console.log("mode:" + ss.mode(img.data).toString());
+					// dataarray = Array.from(data);
+					return Array.from(img.data);
+                }
+                catch(err){
+			        return [];
+				}
 			})
 
 		);
 
 
+        let b = 4;
+
+        barren_l = (209-b)*(196-b)*(180-b)*255;
+        barren_h = (209+b)*(196+b)*(180+b)*255;
+        forest_l = (83-b)*(163-b)*(122-b)*255;
+        forest_h = (83+b)*(163+b)*(122+b)*255;
+        water_l = (171-b)*(182-b)*(255-b)*255;
+        water_h = (171+b)*(182+b)*(255)*255;
+        shrubland_l = (238-b)*(221-b)*(185-b)*255;
+        shrubland_h = (238+b)*(221+b)*(185+b)*255;
+        savanna_l = (250-b)*(246-b)*(167-b)*255;
+        savanna_h = (250+b)*(246+b)*(167+b)*255;
+        wetland_l = (161-b)*(200-b)*(193-b)*255;
+        wetland_h = (161+b)*(200+b)*(193+b)*255;
+        cropland_l = (228-b)*(229-b)*(166-b)*255;
+        cropland_h = (228+b)*(229+b)*(166+b)*255;
+        urban_l = (172-b)*(154-b)*(176-b)*255;
+        urban_h = (172+b)*(154+b)*(176+b)*255;
+        naturalveg_l = (118-b)*(165-b)*(61-b)*255;
+        naturalveg_h = (118+b)*(165+b)*(61+b)*255;
+        snow_l = (239-b)*(239-b)*(238-b)*255;
+        snow_h  = (239+b)*(239+b)*(238+b)*255;
+
+
+
 		Promise.all(promises).then(function (arries) {
+		    $(".info-panel").hide();
 			$("#update").text("assembling...1");
 			let newarray = [];
 			for (let i = 0; i < arries.length; i++) {
-				for (let j = 0; j < arries[i].length; j +=4 * 100) {
-					newarray.push(arries[i][j] * arries[i][j+1] * arries[i][j+2] * arries[i][j+3]);
+				for (let j = 0; j < arries[i].length; j +=  4 * 500) {
+
+				    let veg = arries[i][j] * arries[i][j+1] * arries[i][j+2] * arries[i][j+3];
+                    let r = "Unknown";
+                    if ( veg >= forest_l && veg <= forest_h) {
+                        r = "Forest"
+                    }
+
+                    if (veg >= barren_l && veg <= barren_h) {
+
+                        r = "Barren"
+                    }
+
+                    if (veg >= water_l && veg <= water_h) {
+
+                        r = "Water"
+                    }
+
+                    if (veg >= shrubland_l && veg <= shrubland_h) {
+
+                        r = "Shrubland"
+                    }
+
+                    if (veg >= savanna_l && veg <= savanna_h) {
+
+                        r = "Savanna"
+                    }
+
+                    if (veg >= wetland_l && veg <= wetland_h) {
+
+                        r = "Wetland"
+                    }
+
+                    if (veg >= cropland_l && veg <= cropland_h) {
+
+                        r = "Cropland"
+                    }
+
+                    if (veg >= urban_l && veg <= urban_h) {
+
+                        r = "Urban"
+                    }
+
+                    if (veg >= naturalveg_l && veg <= naturalveg_h) {
+
+                        r = "Natural Veg."
+                    }
+
+                    if (veg >= snow_l && veg <= snow_h) {
+
+                        r = "Snow"
+                    }
+
+					if (r !== "Unknown" && r !== "Water") {
+						newarray.push(r);
+                    }
 				}
-				console.log("i");
+				// console.log("i");
 			}
+
+
 			$("#update").text("assembling...2");
 			let filter = crossfilter(newarray); //Create a crossfilter, input all the geospatial data.
+
 			newarray = null;
 
 			//create charts
 			let lcChart = dc.barChart('#lc-chart');
-			let b = 4;
 
-			barren_l = (209-b)*(196-b)*(180-b)*255;
-			barren_h = (209+b)*(196+b)*(180+b)*255;
-			forest_l = (83-b)*(163-b)*(122-b)*255;
-			forest_h = (83+b)*(163+b)*(122+b)*255;
-			water_l = (171-b)*(182-b)*(255-b)*255;
-			water_h = (171+b)*(182+b)*(255)*255;
-			shrubland_l = (238-b)*(221-b)*(185-b)*255;
-			shrubland_h = (238+b)*(221+b)*(185+b)*255;
-			savanna_l = (250-b)*(246-b)*(167-b)*255;
-			savanna_h = (250+b)*(246+b)*(167+b)*255;
-			wetland_l = (161-b)*(200-b)*(193-b)*255;
-			wetland_h = (161+b)*(200+b)*(193+b)*255;
-			cropland_l = (228-b)*(229-b)*(166-b)*255;
-			cropland_h = (228+b)*(229+b)*(166+b)*255;
-			urban_l = (172-b)*(154-b)*(176-b)*255;
-			urban_h = (172+b)*(154+b)*(176+b)*255;
-			naturalveg_l = (118-b)*(165-b)*(61-b)*255;
-			naturalveg_h = (118+b)*(165+b)*(61+b)*255;
-			snow_l = (239-b)*(239-b)*(238-b)*255;
-			snow_h  = (239+b)*(239+b)*(238+b)*255;
+            let lcDimension = filter.dimension(function (d) { return d;});
 
-
-			let lcDimension = filter.dimension(function (d) {
-				let veg = d;
-				r = "32";
-				if ( veg >= forest_l && veg <= forest_h) {
-					r = "Forest"
-				}
-
-				if (veg >= barren_l && veg <= barren_h) {
-
-					r = "Barren"
-				}
-
-				if (veg >= water_l && veg <= water_h) {
-
-					r = "Water"
-				}
-
-				if (veg >= shrubland_l && veg <= shrubland_h) {
-
-					r = "Shrubland"
-				}
-
-				if (veg >= savanna_l && veg <= savanna_h) {
-
-					r = "Savanna"
-				}
-
-				if (veg >= wetland_l && veg <= wetland_h) {
-
-					r = "Wetland"
-				}
-
-				if (veg >= cropland_l && veg <= cropland_h) {
-
-					r = "Cropland"
-				}
-
-				if (veg >= urban_l && veg <= urban_h) {
-
-					r = "Urban"
-				}
-
-				if (veg >= naturalveg_l && veg <= naturalveg_h) {
-
-					r = "NaturalVegetation"
-				}
-
-				if (veg >= snow_l && veg <= snow_h) {
-
-					r = "Snow"
-				}
-
-
-				return r;
-			});
 
 			$("#update").text("assembling...3");
+
+           // lcDimension = lcDimension.filterRange(["Water", "Unknown"]);
 			let lcDimensionGroup = lcDimension.group();
+           // lcDimensionGroup = lcDimensionGroup.remove("Water");
 
 			lcChart
 				.height(300)
-				.width(400)
-				.margins({top: 0, right: 0, bottom: 20, left: 35})
+				.width(500)
+				.margins({top: 0, right: 0, bottom: 20, left: 45})
 				.dimension(lcDimension)
 				.group(lcDimensionGroup)
 				.elasticY(true)
 				.elasticX(false)
-				.x(d3.scaleBand())
-				//.x(d3.scale.ordinalColors(['#dfc27d','#cdbd7c','#bab87b','#a7b37a','#95ae79','#82a978','#70a477', '#5e9e76', '#4b9975', '#389474', '#268f73']))
+				.x(d3.scaleOrdinal())
 				.xUnits(dc.units.ordinal)
+                .barPadding(0.1)
+                .outerPadding(0.05)
 				.yAxis()
 				.ticks(5);
 
@@ -293,49 +299,48 @@
 			for (let i = 0; i < bars.length; i++) {
 				text_tmp = $(bars[i]).find("title").text();
 				text = (text_tmp.split(":")[0]);
-				if (text == "Water") {
+				if (text === "Water") {
 					$(bars[i]).css({fill: '#abb6ff'});
 				}
-				if (text == "Forest") {
+				if (text === "Forest") {
 					$(bars[i]).css({fill: '#53a37a'});
 				}
-				if (text == "Shrubland") {
+				if (text === "Shrubland") {
 					$(bars[i]).css({fill: '#eeddb9'});
 				}
-				if (text == "Savanna") {
+				if (text === "Savanna") {
 					$(bars[i]).css({fill: '#faf6a7'});
 				}
-				if (text == "Wetland") {
+				if (text === "Wetland") {
 					$(bars[i]).css({fill: '#a1c8c1'});
 				}
-				if (text == "Cropland") {
+				if (text === "Cropland") {
 					$(bars[i]).css({fill: '#e4e5a6'});
 				}
-				if (text == "Urban") {
+				if (text === "Urban") {
 					$(bars[i]).css({fill: '#ac9ab0'});
 				}
-				if (text == "NaturalVegetation") {
+				if (text === "NaturalVegetation") {
 					$(bars[i]).css({fill: '#76a53d'});
 				}
-				if (text == "Snow") {
+				if (text === "Snow") {
 					$(bars[i]).css({fill: '#efefee'});
 				}
-				if (text == "Barren") {
+				if (text === "Barren") {
 					$(bars[i]).css({fill: '#d2c4b4'});
 				}
-
 			}
 
 			$("#update").text("updated");
 			$("#map").removeClass("loading");
 			$("#spinner").hide();
+            $(".info-panel").show();
 
 		});
 
 	}
 
 	lcTile.on('load', updateMapFilter);
-	// lcTile.fire("load");
 
 	$(".leaflet-control-attribution")
 		.empty()
