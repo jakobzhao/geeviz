@@ -16,6 +16,11 @@
 	<link rel="apple-touch-icon icon" sizes="192x192" href="img/geoviz-logo.png">
 
 
+
+	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>-->
+	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.min.js"></script>-->
+	<!--<script src="js/globeminimap.js"></script>-->
+
 	<script src="js/leaflet.js"></script>
 	<!--<script src="js/leaflet.ajax.min.js"></script>-->
 	<script src="js/jquery.min.js"></script>
@@ -26,9 +31,7 @@
 	<script src="js/pako.min.js"></script>
 	<script src="js/UPNG.js"></script>
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.min.js"></script>
-	<script src="js/globeminimap.js"></script>
+
 </head>
 
 <body>
@@ -40,7 +43,7 @@
 
 	<p><small>a brief tutorial on how to use this toolkit</small></p>
 
-	<p>Choose a base map:  <span id="sat">Satellite</span> | <span id="light"> Light Color </span> | <span id="land"> Land Use </span> | <span id="ndvi"> NDVI </span></p>
+	<p>Choose a base map:  <span id="sat">Satellite</span> | <span id="light"> Light Color </span> | <span id="land"> Land Use </span> | <span id="ndvi" style="color:gray"> <i> NDVI (TBA)</i> </span></p>
 	<!--<p id="update"></p>-->
 	<div id="lc-chart"></div>
 	<p>Support by Google Cloud Platform <img src="img/gcp-logo.png" height="20px"> and Google Earth Engine  <img src="img/gee-logo.png" height="20px"></p>
@@ -67,32 +70,32 @@
 
 	$("#spinner").hide();
 
-	var map = L.map('map', {zoomControl: false, scrollWheelZoom: false});
-	var globe = new L.Control.GlobeMiniMap({
-		marker: 'red',
-		position: 'bottomright'
-	});
-	globe.addTo(map);
+	let map = L.map('map', {zoomControl: false, scrollWheelZoom: false});
+	// let globe = new L.Control.GlobeMiniMap({
+	// 	marker: 'red',
+	// 	position: 'bottomright'
+	// });
+	// globe.addTo(map);
 	map.setView([13.29119, -22.92940], 4);
 	// https://storage.googleapis.com/gee_exports/MODIS_vis3/7/87/45
 
-	var lcTile = L.tileLayer('http://storage.googleapis.com/gee_exports/MODIS_vis3/{z}/{x}/{y}', {
+	let lcTile = L.tileLayer('http://storage.googleapis.com/gee_exports/MODIS_vis3/{z}/{x}/{y}', {
 		maxZoom: 6,
 		tms: false,
 		useCors: true,
 		useCache: false
 	}).addTo(map);
 
-	// var lcTile =L.tileLayer('assets/qtiles/MODIS_vis3/{z}/{x}/{y}.png', {
+	// let lcTile =L.tileLayer('assets/qtiles/MODIS_vis3/{z}/{x}/{y}.png', {
 	// 	maxZoom: 6,
 	// 	tms: false,
 	// 	useCache: false
 	// }).addTo(map);
 
 
-	var sat =L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+	let sat =L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
 
-	var light = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/rastertiles/voyager/{z}/{x}/{y}{r}.png');
+	let light = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/rastertiles/voyager/{z}/{x}/{y}{r}.png');
 
 	$("#sat").on("click", function(){
 		map.removeLayer(sat);
@@ -112,8 +115,6 @@
 	});
 
 
-
-
 	///////////////CHART CREATION//////////////////////////
 	function updateMapFilter() {
 
@@ -122,40 +123,35 @@
 		//
 		// $("#update").text("");
 
-		var imgs = $(lcTile._container.children[0]).find("img");
-		var len = imgs.length;
-		var newarray = [];
-		var dataarray = [];
-		var urls = [];
+		let imgs = $(lcTile._container.children[0]).find("img");
+		let len = imgs.length;
+		let newarray = [];
+		let dataarray = [];
+		let urls = [];
 
 		for (let i = 0; i < len; i++) {
 			urls.push($(imgs[i]).attr("src"));
 		}
-	//
-	// , {
-	// 		// credentials: 'omit',
-	// 		mode: 'cors',
-	// 			method: 'OPTIONS',
-	// 			// cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-	// 			credentials: 'include',
-	// 			// referrer: 'no-referrer',
-	// 			headers:{
-	// 			'Access-Control-Allow-Origin': 'localhost:63342',
-	// 				'content-type': 'text/html'
-	// 		}
-	// 	}
-		var promises = urls.map(url => fetch(url)
+
+
+		let requestOpt = {
+			method: 'GET',
+			mode: 'cors'
+		};
+
+
+		let promises = urls.map(url => fetch(url, requestOpt)
 			.then(function(response){
 				return response.arrayBuffer()})
 			.then(function (buffer) {
-				var tt = buffer;
-				var img = UPNG.decode(tt);
-				var rgba = UPNG.toRGBA8(img)[0];
-				var h = img.height;
-				var w = img.width;
-				var ctype = img.ctype;
-				var depth = img.depth;
-				var data = img.data;
+				let tt = buffer;
+				let img = UPNG.decode(tt);
+				let rgba = UPNG.toRGBA8(img)[0];
+				let h = img.height;
+				let w = img.width;
+				let ctype = img.ctype;
+				let depth = img.depth;
+				let data = img.data;
 				//
 				console.log("depth:" + depth.toString());
 				console.log("ctype:" + ctype.toString());
@@ -175,7 +171,7 @@
 
 		Promise.all(promises).then(function (arries) {
 			$("#update").text("assembling...1");
-			var newarray = [];
+			let newarray = [];
 			for (let i = 0; i < arries.length; i++) {
 				for (let j = 0; j < arries[i].length; j +=4 * 100) {
 					newarray.push(arries[i][j] * arries[i][j+1] * arries[i][j+2] * arries[i][j+3]);
@@ -183,12 +179,12 @@
 				console.log("i");
 			}
 			$("#update").text("assembling...2");
-			var filter = crossfilter(newarray); //Create a crossfilter, input all the geospatial data.
+			let filter = crossfilter(newarray); //Create a crossfilter, input all the geospatial data.
 			newarray = null;
 
 			//create charts
-			var lcChart = dc.barChart('#lc-chart');
-			var b = 4;
+			let lcChart = dc.barChart('#lc-chart');
+			let b = 4;
 
 			barren_l = (209-b)*(196-b)*(180-b)*255;
 			barren_h = (209+b)*(196+b)*(180+b)*255;
@@ -212,8 +208,8 @@
 			snow_h  = (239+b)*(239+b)*(238+b)*255;
 
 
-			var lcDimension = filter.dimension(function (d) {
-				var veg = d;
+			let lcDimension = filter.dimension(function (d) {
+				let veg = d;
 				r = "32";
 				if ( veg >= forest_l && veg <= forest_h) {
 					r = "Forest"
@@ -269,7 +265,7 @@
 			});
 
 			$("#update").text("assembling...3");
-			var lcDimensionGroup = lcDimension.group();
+			let lcDimensionGroup = lcDimension.group();
 
 			lcChart
 				.height(300)
@@ -288,8 +284,8 @@
 			dc.renderAll();
 
 			$("#update").text("assembling...4");
-			var bars = $("rect.bar");
-			for (var i = 0; i < bars.length; i++) {
+			let bars = $("rect.bar");
+			for (let i = 0; i < bars.length; i++) {
 				text_tmp = $(bars[i]).find("title").text();
 				text = (text_tmp.split(":")[0]);
 				if (text == "Water") {
