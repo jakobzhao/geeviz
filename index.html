@@ -25,6 +25,10 @@
 	<script src="js/simple-statistics.min.js"></script>
 	<script src="js/pako.min.js"></script>
 	<script src="js/UPNG.js"></script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.min.js"></script>
+	<script src="js/globeminimap.js"></script>
 </head>
 
 <body>
@@ -63,10 +67,13 @@
 
 	$("#spinner").hide();
 
-	var map = L.map('map', {zoomControl: false, scrollWheelZoom: false}).setView([13.29119, -22.92940], 4);
-
-
-
+	var map = L.map('map', {zoomControl: false, scrollWheelZoom: false});
+	var globe = new L.Control.GlobeMiniMap({
+		marker: 'red',
+		position: 'bottomright'
+	});
+	globe.addTo(map);
+	map.setView([13.29119, -22.92940], 4);
 	// https://storage.googleapis.com/gee_exports/MODIS_vis3/7/87/45
 
 	var lcTile = L.tileLayer('http://storage.googleapis.com/gee_exports/MODIS_vis3/{z}/{x}/{y}', {
@@ -105,13 +112,15 @@
 	});
 
 
+
+
 	///////////////CHART CREATION//////////////////////////
 	function updateMapFilter() {
 
-		$("#map").addClass("loading");
-		$("#spinner").show();
-
-		$("#update").text("");
+		// $("#map").addClass("loading");
+		// $("#spinner").show();
+		//
+		// $("#update").text("");
 
 		var imgs = $(lcTile._container.children[0]).find("img");
 		var len = imgs.length;
@@ -122,12 +131,22 @@
 		for (let i = 0; i < len; i++) {
 			urls.push($(imgs[i]).attr("src"));
 		}
-
-		var promises = urls.map(url => fetch(url, {
-			mode: 'cors'
-
-			})
-			.then(function(response){return response.arrayBuffer()})
+	//
+	// , {
+	// 		// credentials: 'omit',
+	// 		mode: 'cors',
+	// 			method: 'OPTIONS',
+	// 			// cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+	// 			credentials: 'include',
+	// 			// referrer: 'no-referrer',
+	// 			headers:{
+	// 			'Access-Control-Allow-Origin': 'localhost:63342',
+	// 				'content-type': 'text/html'
+	// 		}
+	// 	}
+		var promises = urls.map(url => fetch(url)
+			.then(function(response){
+				return response.arrayBuffer()})
 			.then(function (buffer) {
 				var tt = buffer;
 				var img = UPNG.decode(tt);
@@ -315,12 +334,12 @@
 
 	lcTile.on('load', updateMapFilter);
 
-	$(".leaflet-control")
+	$(".leaflet-control-attribution")
 		.empty()
 		.css("border-radius", "2px")
 		.css("background-color", "rgba(255,255,255,0.7)")
 		.html("<p style='line-height:16px; height:18px!important; vertical-align: center; margin:0 0 0 0; padding: 0 0 0 0 '>Created by <a target='_blank' href='http://ceoas.oregonstate.edu/profile/friedrich/'>Hannah Friedrich</a> and <a target='_blank' href='http://ceoas.oregonstate.edu/profile/zhao/'>Bo Zhao</a> from <img src='img/geoviz-logo.png' width='12px'/> <a>GeoViz Lab at Oregon State University</p></a>");
-
+	map.invalidateSize();
 
 </script>
 </body>
