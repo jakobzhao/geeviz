@@ -69,9 +69,10 @@
 
 	// https://storage.googleapis.com/gee_exports/MODIS_vis3/7/87/45
 
-	var lcTile =L.tileLayer('https://storage.googleapis.com/gee_exports/MODIS_vis3/{z}/{x}/{y}.png', {
+	var lcTile = L.tileLayer('http://storage.googleapis.com/gee_exports/MODIS_vis3/{z}/{x}/{y}', {
 		maxZoom: 6,
 		tms: false,
+		useCors: true,
 		useCache: false
 	}).addTo(map);
 
@@ -122,7 +123,10 @@
 			urls.push($(imgs[i]).attr("src"));
 		}
 
-		var promises = urls.map(url => fetch(url)
+		var promises = urls.map(url => fetch(url, {
+			mode: 'cors'
+
+			})
 			.then(function(response){return response.arrayBuffer()})
 			.then(function (buffer) {
 				var tt = buffer;
