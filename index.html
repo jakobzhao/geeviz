@@ -16,6 +16,7 @@
 	<link rel="apple-touch-icon icon" sizes="192x192" href="img/geoviz-logo.png">
 
 	<script src="js/leaflet.js"></script>
+	<!--<script src="js/Control.MiniMap.js"></script>-->
 	<!--<script src="js/leaflet.ajax.min.js"></script>-->
 	<script src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/d3.v5.min.js"></script>
@@ -39,7 +40,7 @@
 	<p>Choose a base map:  <span id="sat">Satellite</span> | <span id="light"> Light Color </span> | <span id="land"> Land Use </span> | <span id="ndvi" style="color:gray"> <i> NDVI (TBA)</i> </span></p>
 	<!--<p id="update"></p>-->
 	<div id="lc-chart"></div>
-	<p align="right">Support by <strong>Google Cloud Platform</strong> <img src="img/gcp-logo.png" height="20px"> and <strong>Google Earth Engine</strong>  <img src="img/gee-logo.png" height="20px"></p>
+	<p align="right">Support by <strong>Google Cloud Platform</strong> <img src="img/gcp-logo.png" height="20px">, <strong>Google Earth Engine</strong>  <img src="img/gee-logo.png" height="20px"> and <strong>QGIS</strong>  <img src="img/qgis-logo.png" height="20px">.</p>
 </div>
 
 <dl>
@@ -67,6 +68,8 @@
     let map = L.map('map', {zoomControl: true, scrollWheelZoom: false, maxBounds: L.latLngBounds(southWest, northEast),});
 
 	map.setView([13.29119, -22.92940], 4);
+
+
 
 
 	// https://storage.googleapis.com/gee_exports/MODIS_vis3/7/87/45
@@ -104,8 +107,10 @@
 		map.removeLayer(light);
 	});
 
+    // var miniMap = new L.Control.MiniMap(lcTile).addTo(map);
 
-	///////////////CHART CREATION//////////////////////////
+
+    ///////////////CHART CREATION//////////////////////////
 	function updateMapFilter() {
 
 		$("#map").addClass("loading");
@@ -346,6 +351,8 @@
 		.css("background-color", "rgba(255,255,255,0.7)")
 		.html("<p style='line-height:16px; height:18px!important; vertical-align: center; margin:0 0 0 0; padding: 0 0 0 0 '>Created by <a target='_blank' href='http://ceoas.oregonstate.edu/profile/friedrich/'>Hannah Friedrich</a> and <a target='_blank' href='http://ceoas.oregonstate.edu/profile/zhao/'>Bo Zhao</a> from <img src='img/geoviz-logo.png' width='12px'/> <a>GeoViz Lab at Oregon State University</p></a>");
 	map.invalidateSize();
+
+    map.setView([13.29119, -22.92940], 4);
 
 </script>
 </body>
