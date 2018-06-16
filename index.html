@@ -32,25 +32,25 @@
 <div id="map"></div>
 <div class="info-panel" >
 
-	<h4>Geovisual analytical toolkit for Google Earth Engine</h4>
+	<h3>Geovisual analytical toolkit for Google Earth Engine</h3>
 
-	<p><small>a brief tutorial on how to use this toolkit</small></p>
+	<p> Drag the map to explore the distribution of land cover in the viewport of the browser. The land cover type in the chart is associoate with the type of land use on the map.</p>
 
 	<p>Choose a base map:  <span id="sat">Satellite</span> | <span id="light"> Light Color </span> | <span id="land"> Land Use </span> | <span id="ndvi" style="color:gray"> <i> NDVI (TBA)</i> </span></p>
 	<!--<p id="update"></p>-->
 	<div id="lc-chart"></div>
-	<p>Support by Google Cloud Platform <img src="img/gcp-logo.png" height="20px"> and Google Earth Engine  <img src="img/gee-logo.png" height="20px"></p>
+	<p align="right">Support by <strong>Google Cloud Platform</strong> <img src="img/gcp-logo.png" height="20px"> and <strong>Google Earth Engine</strong>  <img src="img/gee-logo.png" height="20px"></p>
 </div>
 
 <dl>
 	<dt>
 		<!--facebook icon-->
 		<a class="fab fa-facebook-square btn"
-		   href="https://facebook.com/sharer.php?u=http://geoviz.ceoas.oregonstate.edu/storymap/examples/2.3/video.html"
+		   href="https://facebook.com/sharer.php?u=http://geoviz.ceoas.oregonstate.edu/geeviz/index.html"
 		   target="_blank"></a>
 	</dt>
 	<dt>
-		<a class="fab fa-github btn" href="https://github.com/jakobzhao/storymap" style="top:48px"
+		<a class="fab fa-github btn" href="https://github.com/jakobzhao/geeviz" style="top:48px"
 		   target="_blank"></a>
 	</dt>
 	<dt>
@@ -193,13 +193,12 @@
         snow_h  = (239+b)*(239+b)*(238+b)*255;
 
 
-
 		Promise.all(promises).then(function (arries) {
 		    $(".info-panel").hide();
 			$("#update").text("assembling...1");
 			let newarray = [];
 			for (let i = 0; i < arries.length; i++) {
-				for (let j = 0; j < arries[i].length; j +=  4 * 500) {
+				for (let j = 0; j < arries[i].length; j +=  4 * 2000) {
 
 				    let veg = arries[i][j] * arries[i][j+1] * arries[i][j+2] * arries[i][j+3];
                     let r = "Unknown";
@@ -261,7 +260,7 @@
 
 
 			$("#update").text("assembling...2");
-			let filter = crossfilter(newarray); //Create a crossfilter, input all the geospatial data.
+			let filter = crossfilter(newarray);
 
 			newarray = null;
 
@@ -280,7 +279,7 @@
 			lcChart
 				.height(300)
 				.width(500)
-				.margins({top: 0, right: 0, bottom: 20, left: 45})
+				.margins({top: 0, right: 0, bottom: 20, left: 35})
 				.dimension(lcDimension)
 				.group(lcDimensionGroup)
 				.elasticY(true)
@@ -288,7 +287,6 @@
 				.x(d3.scaleOrdinal())
 				.xUnits(dc.units.ordinal)
                 .barPadding(0.1)
-                .outerPadding(0.05)
 				.yAxis()
 				.ticks(5);
 
