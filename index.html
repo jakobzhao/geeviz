@@ -70,7 +70,7 @@
 
 	$("#spinner").hide();
 
-	let map = L.map('map', {zoomControl: false, scrollWheelZoom: false});
+	let map = L.map('map', {zoomControl: true, scrollWheelZoom: false});
 	// let globe = new L.Control.GlobeMiniMap({
 	// 	marker: 'red',
 	// 	position: 'bottomright'
@@ -81,15 +81,14 @@
 
 	let lcTile = L.tileLayer('http://storage.googleapis.com/gee_exports/MODIS_vis3/{z}/{x}/{y}', {
 		maxZoom: 6,
-		tms: false,
-		useCors: true,
-		useCache: false
+		tms: false
 	}).addTo(map);
 
 	// let lcTile =L.tileLayer('assets/qtiles/MODIS_vis3/{z}/{x}/{y}.png', {
 	// 	maxZoom: 6,
 	// 	tms: false,
-	// 	useCache: false
+	// 	noWrap: true,
+	// 	useCache: true
 	// }).addTo(map);
 
 
@@ -118,12 +117,16 @@
 	///////////////CHART CREATION//////////////////////////
 	function updateMapFilter() {
 
-		// $("#map").addClass("loading");
-		// $("#spinner").show();
-		//
-		// $("#update").text("");
+		$("#map").addClass("loading");
+		$("#spinner").show();
+
+		$("#update").text("");
 
 		let imgs = $(lcTile._container.children[0]).find("img");
+		let imgs2 = $(lcTile._container.children[1]).find("img");
+		for (let i=0;i<imgs2.length;i++) {
+			imgs.push(imgs2[i]);
+		}
 		let len = imgs.length;
 		let newarray = [];
 		let dataarray = [];
@@ -134,9 +137,14 @@
 		}
 
 
+		let header = new Headers({
+			'Access-Control-Allow-Origin':'*'
+		});
+
 		let requestOpt = {
 			method: 'GET',
-			mode: 'cors'
+			mode: 'cors',
+			header: header
 		};
 
 
@@ -144,25 +152,22 @@
 			.then(function(response){
 				return response.arrayBuffer()})
 			.then(function (buffer) {
-				let tt = buffer;
-				let img = UPNG.decode(tt);
-				let rgba = UPNG.toRGBA8(img)[0];
+				let img = UPNG.decode(buffer);
 				let h = img.height;
 				let w = img.width;
 				let ctype = img.ctype;
 				let depth = img.depth;
-				let data = img.data;
 				//
 				console.log("depth:" + depth.toString());
 				console.log("ctype:" + ctype.toString());
-				console.log("mean:" + ss.mean(data).toString());
-				console.log("median:" + ss.median(data).toString());
-				console.log("max:" + ss.max(data).toString());
+				console.log("mean:" + ss.mean(img.data).toString());
+				console.log("median:" + ss.median(img.data).toString());
+				console.log("max:" + ss.max(img.data).toString());
 				//
-				console.log(data);
-				console.log("mode:" + ss.mode(data).toString());
-				dataarray = Array.from(data);
-				return dataarray;
+				console.log(img.data);
+				console.log("mode:" + ss.mode(img.data).toString());
+				// dataarray = Array.from(data);
+				return Array.from(img.data);
 				// $("#update").text("reading tiles...");
 			})
 
@@ -324,11 +329,13 @@
 			$("#update").text("updated");
 			$("#map").removeClass("loading");
 			$("#spinner").hide();
+
 		});
 
 	}
 
 	lcTile.on('load', updateMapFilter);
+	// lcTile.fire("load");
 
 	$(".leaflet-control-attribution")
 		.empty()
